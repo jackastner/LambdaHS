@@ -12,7 +12,7 @@ import Control.Monad.Except
 runProgram :: String -> Either String Expression
 runProgram str =  runExcept $ do
   toks <- tokenizeString lambdaTokenRegex str
-  (exp,rest) <- runStateT parseExpression toks
+  (exp,rest) <- runStateT parseProgram toks
   return $ interpretExpression exp
 
 main :: IO ()
@@ -21,7 +21,7 @@ main = do
   case result of
     (Right exp) -> do
       putStrLn "program executed succesfully"
-      print exp
+      putStrLn . prettyPrint $ exp
     (Left err) -> do
       putStrLn "program failed"
       putStrLn err

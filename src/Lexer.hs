@@ -2,27 +2,27 @@ module Lexer where
 
 import Types
 
-import Text.Regex
+import Text.Regex.TDFA
 import Data.List
 import Data.Ord
 import Data.Maybe
 import Control.Monad.Except
 
 lambdaTokenRegex :: [(Token, Regex)]
-lambdaTokenRegex = ((mkRegex.("^"++))<$>) <$> [
+lambdaTokenRegex = ((makeRegex.("^"++))<$>) <$> [
   (TOK_DOT, "\\."),
   (TOK_LPAREN, "\\("),
   (TOK_RPAREN, "\\)"),
   (TOK_ATOM "", "[a-zA-Z_]+"),
   (TOK_LAMBDA, "\\\\"),
-  (TOK_WHITESPACE, "\\s+")]
+  (TOK_WHITESPACE, "[ \t\n]+")]
 
 matchLongest :: [(Token, Regex)] -> String -> Except String (Token, String, String)
 matchLongest tokens str = headExcept ("Failed to tokenize at: " ++ (take 10 str)) . 
                           sortBy (flip $ comparing (\(tok,match,rest) -> (length match, tok))) . 
-                          fmap (\(tok,(_,match,rest,_)) -> (tok, match, rest)) . 
+                          fmap (\(tok,(_,match,rest)) -> (tok, match, rest)) . 
                           catMaybes . 
-                          map (\(tok,re) -> (\a-> (tok,a)) <$> matchRegexAll re str) 
+                          map (\(tok,re) -> (\a -> (tok,a)) <$> (matchM re str :: Maybe (String,String,String))) 
                           $ tokens
 
 headExcept  :: b -> [a] -> Except b a
